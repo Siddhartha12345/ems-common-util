@@ -1,10 +1,11 @@
 package com.ems.common.security;
 
+import com.ems.common.constant.AuthenticationErrorEnum;
 import com.ems.common.constant.EmsCommonConstant;
 import com.ems.common.entity.User;
+import com.ems.common.exception.UserAccessDeniedException;
 import com.ems.common.feign.AuthenticationFeign;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
@@ -32,11 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+                                    @NonNull FilterChain filterChain) {
 
-        String authHeader = request.getHeader(EmsCommonConstant.AUTHORIZATION_HEADER);
+        final String authHeader = request.getHeader(EmsCommonConstant.AUTHORIZATION_HEADER);
         if (authHeader == null || !authHeader.startsWith(EmsCommonConstant.TYPE_BEARER)) {
-            filterChain.doFilter(request, response);
+            handlerExceptionResolver.resolveException(request, response, null,
+                    new UserAccessDeniedException(AuthenticationErrorEnum.ACCESS_DENIED.getErrorCode(), AuthenticationErrorEnum.ACCESS_DENIED.getErrorMessage()));
             return;
         }
         try {
