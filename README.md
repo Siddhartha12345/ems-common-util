@@ -1,2 +1,2 @@
 # ems-common-util
-Utility project for EMS
+Utility project for Employee management service
